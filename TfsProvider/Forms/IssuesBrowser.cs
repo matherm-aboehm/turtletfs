@@ -59,42 +59,47 @@ namespace TurtleTfs.Forms
 			return (WorkItemStore) _tfs.GetService(typeof (WorkItemStore));
 		}
 
+		private void RecurseWorkItems(Dictionary<string, string> context, List<MyWorkItem> items, QueryItem queryItem)
+		{
+			// Skip queries that aren't of type list, there's some funny exception i dont want to deal with
+			var queryDefinition = queryItem as QueryDefinition;
+			if (queryDefinition == null || queryDefinition.QueryType != QueryType.List)
+				return;
+
+			foreach (WorkItem workItem in _workItemStore.Query(queryDefinition.QueryText, context))
+			{
+				items.Add(new MyWorkItem
+				{
+					id = workItem.Id,
+					state = workItem.State,
+					title = workItem.Title,
+					type = workItem.Type.Name
+				});
+			}
+		}
+
 		private IEnumerable<MyWorkItem> GetWorkItems(TfsQuery query)
 		{
-			var context = new Dictionary<string, string> {{"project", query.Query.Project.Name}};
-
 			var items = new List<MyWorkItem>();
 
-			var queryFolder = query.Query as QueryFolder;
-			if (queryFolder == null)
-				return items;
+			RecurseWorkItems(
+				new Dictionary<string, string> {{"project", query.Query.Project.Name}},
+				items, query.Query);
 
-			foreach (QueryItem item in queryFolder)
-			{
-				// Recurse into query folders
-				if (item is QueryFolder)
-				{
-					items.AddRange(GetWorkItems(new TfsQuery(item)));
-					continue;
-				}
-
-				// Skip queries that aren't of type list, there's some funny exception i dont want to deal with
-				var queryDefinition = item as QueryDefinition;
-				if (queryDefinition == null || queryDefinition.QueryType != QueryType.List)
-					continue;
-
-				foreach (WorkItem workItem in _workItemStore.Query(queryDefinition.QueryText, context))
-				{
-					items.Add(new MyWorkItem
-					{
-						id = workItem.Id,
-						state = workItem.State,
-						title = workItem.Title,
-						type = workItem.Type.Name
-					});
-				}
-			}
 			return items;
+		}
+
+		private void AddQueryItem(ComboBox comboBox, QueryItem queryItem)
+		{
+			// Only add definitions to the combobox
+			if (queryItem is QueryDefinition)
+				comboBox.Items.Add(new TfsQuery(queryItem));
+
+			if (!(queryItem is QueryFolder))
+				return;
+
+			foreach (var subQueryItem in queryItem as QueryFolder)
+				AddQueryItem(comboBox, subQueryItem);
 		}
 
 		private void PopulateComboBoxWithSavedQueries(ComboBox comboBox)
@@ -102,7 +107,7 @@ namespace TurtleTfs.Forms
 			Project project = _workItemStore.Projects[options.ProjectName];
 
 			foreach (var queryItem in project.QueryHierarchy)
-				comboBox.Items.Add(new TfsQuery(queryItem));
+				AddQueryItem(comboBox, queryItem);
 
 			if (comboBox.Items.Count > 0)
 				comboBox.SelectedIndex = 0;
@@ -114,10 +119,10 @@ namespace TurtleTfs.Forms
 			PopulateComboBoxWithSavedQueries(queryComboBox);
 		}
 
-		private void PopulateWorkItemsList(ListView listView, TfsQuery query)
+		private void PopulateWorkItemsList(ListView listView, TfsQuery tfsQuery)
 		{
 			listView.Items.Clear();
-			IEnumerable<MyWorkItem> workItems = GetWorkItems(query);
+			IEnumerable<MyWorkItem> workItems = GetWorkItems(tfsQuery);
 			foreach (var workItem in workItems)
 			{
 				var lvi = new ListViewItem {Text = "", Tag = workItem,};
@@ -159,15 +164,17 @@ namespace TurtleTfs.Forms
 		public TfsQuery(QueryItem query)
 		{
 			Query = query;
-			Name = query.Name;
 		}
 
-		private string Name { get; set; }
 		public QueryItem Query { get; private set; }
 
 		public override string ToString()
 		{
-			return Name;
+			if (Query == null)
+				return string.Empty;
+
+			// Skip the project name
+			return Query.Path.Substring(Query.Project.Name.Length + 1);
 		}
 	}
 
