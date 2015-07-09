@@ -31,11 +31,11 @@ namespace TurtleTfs.Forms
 			this.buttonOk = new System.Windows.Forms.Button();
 			this.buttonCancel = new System.Windows.Forms.Button();
 			this.listViewIssues = new System.Windows.Forms.ListView();
-			this.checkBoxColumn = new System.Windows.Forms.ColumnHeader();
-			this.typeColumn = new System.Windows.Forms.ColumnHeader();
-			this.idColumn = new System.Windows.Forms.ColumnHeader();
-			this.stateColumn = new System.Windows.Forms.ColumnHeader();
-			this.titleColumn = new System.Windows.Forms.ColumnHeader();
+			this.checkBoxColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.typeColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.idColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.stateColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.titleColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.commentBox = new System.Windows.Forms.TextBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.queryComboBox = new System.Windows.Forms.ComboBox();
@@ -68,9 +68,9 @@ namespace TurtleTfs.Forms
 			// 
 			// listViewIssues
 			// 
-			this.listViewIssues.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.listViewIssues.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.listViewIssues.CheckBoxes = true;
 			this.listViewIssues.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.checkBoxColumn,
@@ -117,8 +117,8 @@ namespace TurtleTfs.Forms
 			// commentBox
 			// 
 			this.commentBox.AcceptsReturn = true;
-			this.commentBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.commentBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.commentBox.Location = new System.Drawing.Point(12, 370);
 			this.commentBox.Multiline = true;
 			this.commentBox.Name = "commentBox";
@@ -136,8 +136,8 @@ namespace TurtleTfs.Forms
 			// 
 			// queryComboBox
 			// 
-			this.queryComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.queryComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.queryComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.queryComboBox.FormattingEnabled = true;
 			this.queryComboBox.Location = new System.Drawing.Point(58, 10);
@@ -149,7 +149,7 @@ namespace TurtleTfs.Forms
 			// label2
 			// 
 			this.label2.AutoSize = true;
-			this.label2.Location = new System.Drawing.Point(13, 37);
+			this.label2.Location = new System.Drawing.Point(13, 35);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(64, 13);
 			this.label2.TabIndex = 7;
@@ -159,7 +159,7 @@ namespace TurtleTfs.Forms
 			// 
 			this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.label3.AutoSize = true;
-			this.label3.Location = new System.Drawing.Point(9, 354);
+			this.label3.Location = new System.Drawing.Point(9, 352);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(54, 13);
 			this.label3.TabIndex = 8;
