@@ -13,8 +13,8 @@ namespace TurtleTfs.Forms
 		private readonly List<MyWorkItem> associatedWorkItems = new List<MyWorkItem>();
 		private readonly ListViewColumnSorter listViewColumnSorter;
 		private readonly TfsProviderOptions options;
-		private TeamFoundationServer tfs;
-		private WorkItemStore workItemStore;
+		private TfsTeamProjectCollection _tfs;
+		private WorkItemStore _workItemStore;
 
 		public IssuesBrowser(string parameters, string comment)
 		{
@@ -42,30 +42,75 @@ namespace TurtleTfs.Forms
 
 		private WorkItemStore ConnectToTfs()
 		{
-			tfs = TeamFoundationServerFactory.GetServer(options.ServerName);
-			tfs.EnsureAuthenticated();
-			return (WorkItemStore) tfs.GetService(typeof (WorkItemStore));
+			Uri tfsUri;
+			if (!Uri.TryCreate(options.ServerName, UriKind.Absolute, out tfsUri))
+				return null;
+
+			var credentials = new System.Net.NetworkCredential();
+			if (!string.IsNullOrEmpty(options.UserName))
+			{
+				credentials.UserName = options.UserName;
+				credentials.Password = options.UserPassword;
+			}
+
+			_tfs = new TfsTeamProjectCollection(tfsUri, credentials);
+			_tfs.Authenticate();
+
+			return (WorkItemStore) _tfs.GetService(typeof (WorkItemStore));
 		}
 
 		private IEnumerable<MyWorkItem> GetWorkItems(TfsQuery query)
 		{
 			var context = new Dictionary<string, string> {{"project", query.Query.Project.Name}};
-			return (from WorkItem workItem in workItemStore.Query(query.Query.QueryText, context)
-					select new MyWorkItem(workItem.Id, workItem.State, workItem.Title, workItem.Type.Name)
-					).ToList();
+
+			var items = new List<MyWorkItem>();
+
+			var queryFolder = query.Query as QueryFolder;
+			if (queryFolder == null)
+				return items;
+
+			foreach (QueryItem item in queryFolder)
+			{
+				// Recurse into query folders
+				if (item is QueryFolder)
+				{
+					items.AddRange(GetWorkItems(new TfsQuery(item)));
+					continue;
+				}
+
+				// Skip queries that aren't of type list, there's some funny exception i dont want to deal with
+				var queryDefinition = item as QueryDefinition;
+				if (queryDefinition == null || queryDefinition.QueryType != QueryType.List)
+					continue;
+
+				foreach (WorkItem workItem in _workItemStore.Query(queryDefinition.QueryText, context))
+				{
+					items.Add(new MyWorkItem
+					{
+						id = workItem.Id,
+						state = workItem.State,
+						title = workItem.Title,
+						type = workItem.Type.Name
+					});
+				}
+			}
+			return items;
 		}
 
 		private void PopulateComboBoxWithSavedQueries(ComboBox comboBox)
 		{
-			Project project = workItemStore.Projects[options.ProjectName];
-			StoredQueryCollection storedQueries = project.StoredQueries;
-			foreach (StoredQuery query in storedQueries) comboBox.Items.Add(new TfsQuery(query));
-			if (comboBox.Items.Count > 0) comboBox.SelectedIndex = 0;
+			Project project = _workItemStore.Projects[options.ProjectName];
+
+			foreach (var queryItem in project.QueryHierarchy)
+				comboBox.Items.Add(new TfsQuery(queryItem));
+
+			if (comboBox.Items.Count > 0)
+				comboBox.SelectedIndex = 0;
 		}
 
 		private void MyIssuesForm_Load(object sender, EventArgs e)
 		{
-			workItemStore = ConnectToTfs();
+			_workItemStore = ConnectToTfs();
 			PopulateComboBoxWithSavedQueries(queryComboBox);
 		}
 
@@ -111,14 +156,14 @@ namespace TurtleTfs.Forms
 
 	internal class TfsQuery
 	{
-		public TfsQuery(StoredQuery query)
+		public TfsQuery(QueryItem query)
 		{
 			Query = query;
 			Name = query.Name;
 		}
 
 		private string Name { get; set; }
-		public StoredQuery Query { get; private set; }
+		public QueryItem Query { get; private set; }
 
 		public override string ToString()
 		{

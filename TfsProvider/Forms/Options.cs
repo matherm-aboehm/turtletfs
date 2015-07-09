@@ -15,6 +15,8 @@ namespace TurtleTfs.Forms
 			Parameters = parameters;
 			options = TfsOptionsSerializer.Deserialize(parameters);
 			tfsAddressTextBox.Text = options.ServerName;
+			tfsUsernameTextBox.Text = options.UserName;
+			tfsPasswordTextBox.Text = options.UserPassword;
 		}
 
 		public string Parameters { get; private set; }
@@ -22,6 +24,8 @@ namespace TurtleTfs.Forms
 		private void okButton_Click(object sender, EventArgs e)
 		{
 			options.ServerName = tfsAddressTextBox.Text;
+			options.UserName = tfsUsernameTextBox.Text;
+			options.UserPassword = tfsPasswordTextBox.Text;
 			options.ProjectName = projectComboBox.Text;
 			Parameters = TfsOptionsSerializer.Serialize(options);
 		}
@@ -34,12 +38,29 @@ namespace TurtleTfs.Forms
 		private void PopulateProjectNameComboBox()
 		{
 			string url = tfsAddressTextBox.Text;
-			if (!Uri.IsWellFormedUriString(url, UriKind.Absolute)) return;
-			var tfs = TeamFoundationServerFactory.GetServer(url);
-			tfs.EnsureAuthenticated();
-			var workItemStore = (WorkItemStore)tfs.GetService(typeof (WorkItemStore));
+			string username = tfsUsernameTextBox.Text;
+			string password = tfsPasswordTextBox.Text;
+
+			Uri tfsUri;
+			if (!Uri.TryCreate(url, UriKind.Absolute, out tfsUri))
+				return;
+
+			var credentials = new System.Net.NetworkCredential();
+			if (!string.IsNullOrEmpty(username))
+			{
+				credentials.UserName = username;
+				credentials.Password = password;
+			}
+
+			var tfs = new TfsTeamProjectCollection(tfsUri, credentials);
+			tfs.Authenticate();
+
+			var workItemStore = (WorkItemStore)tfs.GetService(typeof(WorkItemStore));
+
 			projectComboBox.Items.Clear();
-			foreach (Project project in workItemStore.Projects) projectComboBox.Items.Add(project.Name);
+			foreach (Project project in workItemStore.Projects)
+				projectComboBox.Items.Add(project.Name);
+
 			int existingProjectIndex = -1;
 			if (!string.IsNullOrEmpty(options.ProjectName))
 				existingProjectIndex = projectComboBox.Items.IndexOf(options.ProjectName);

@@ -14,6 +14,12 @@ namespace TurtleTfs
 		public string ServerName { get; set; }
 
 		[XmlElement]
+		public string UserName { get; set; }
+		
+		[XmlElement]
+		public string UserPassword { get; set; }
+
+		[XmlElement]
 		public string ProjectName { get; set; }
 	}
 }
