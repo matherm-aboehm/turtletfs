@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -119,15 +120,32 @@ namespace TurtleTfs.Forms
 			PopulateComboBoxWithSavedQueries(queryComboBox);
 		}
 
+		private string FormatWorkItemAddress(int workId)
+		{
+			// https://example.visualstudio.com/DefaultCollection/Example/_workitems#_a=edit&id=123
+			return string.Format("{0}/{1}/_workitems#_a=edit&id={2}", options.ServerName, options.ProjectName, workId);
+		}
+
 		private void PopulateWorkItemsList(ListView listView, TfsQuery tfsQuery)
 		{
 			listView.Items.Clear();
 			IEnumerable<MyWorkItem> workItems = GetWorkItems(tfsQuery);
 			foreach (var workItem in workItems)
 			{
-				var lvi = new ListViewItem {Text = "", Tag = workItem,};
+				var lvi = new ListViewItem
+				{
+					Text = "",
+					Tag = workItem,
+					UseItemStyleForSubItems = false
+				};
+
 				lvi.SubItems.Add(workItem.type);
-				lvi.SubItems.Add(workItem.id.ToString());
+				lvi.SubItems.Add(new ListViewItem.ListViewSubItem
+				{
+					Text = workItem.id.ToString(),
+					Font = new Font(lvi.Font, FontStyle.Underline),
+					ForeColor = Color.Blue
+				});
 				lvi.SubItems.Add(workItem.state);
 				lvi.SubItems.Add(workItem.title);
 				listView.Items.Add(lvi);
@@ -156,6 +174,24 @@ namespace TurtleTfs.Forms
 				listViewColumnSorter.Order = SortOrder.Ascending;
 			}
 			listViewIssues.Sort();
+		}
+
+		private void listViewIssues_Click(object sender, EventArgs e)
+		{
+			if (!options.VisualStudioOnline)
+				return;
+
+			Point mousePosition = listViewIssues.PointToClient(Control.MousePosition);
+			ListViewHitTestInfo hit = listViewIssues.HitTest(mousePosition);
+			int columnindex = hit.Item.SubItems.IndexOf(hit.SubItem);
+			if (columnindex != 2)
+				return;
+
+			var workItem = hit.Item.Tag as WorkItem;
+			if (workItem == null)
+				return;
+
+			System.Diagnostics.Process.Start(FormatWorkItemAddress(workItem.Id));
 		}
 	}
 
