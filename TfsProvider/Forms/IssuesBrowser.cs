@@ -129,25 +129,32 @@ namespace TurtleTfs.Forms
 		private void PopulateWorkItemsList(ListView listView, TfsQuery tfsQuery)
 		{
 			listView.Items.Clear();
-			IEnumerable<MyWorkItem> workItems = GetWorkItems(tfsQuery);
-			foreach (var workItem in workItems)
+			IEnumerable<MyWorkItem> myWorkItems = GetWorkItems(tfsQuery);
+			foreach (var myWorkItem in myWorkItems)
 			{
 				var lvi = new ListViewItem
 				{
 					Text = "",
-					Tag = workItem,
-					UseItemStyleForSubItems = false
+					Tag = myWorkItem,
+					UseItemStyleForSubItems = !options.VisualStudioOnline
 				};
 
-				lvi.SubItems.Add(workItem.type);
-				lvi.SubItems.Add(new ListViewItem.ListViewSubItem
+				lvi.SubItems.Add(myWorkItem.type);
+				if (!options.VisualStudioOnline)
 				{
-					Text = workItem.id.ToString(),
-					Font = new Font(lvi.Font, FontStyle.Underline),
-					ForeColor = Color.Blue
-				});
-				lvi.SubItems.Add(workItem.state);
-				lvi.SubItems.Add(workItem.title);
+					lvi.SubItems.Add(myWorkItem.id.ToString());
+				}
+				else
+				{
+					lvi.SubItems.Add(new ListViewItem.ListViewSubItem
+					{
+						Text = myWorkItem.id.ToString(),
+						Font = new Font(lvi.Font, FontStyle.Underline),
+						ForeColor = Color.Blue
+					});
+				}
+				lvi.SubItems.Add(myWorkItem.state);
+				lvi.SubItems.Add(myWorkItem.title);
 				listView.Items.Add(lvi);
 			}
 			foreach (ColumnHeader column in listViewIssues.Columns) column.Width = -1;
@@ -183,15 +190,15 @@ namespace TurtleTfs.Forms
 
 			Point mousePosition = listViewIssues.PointToClient(Control.MousePosition);
 			ListViewHitTestInfo hit = listViewIssues.HitTest(mousePosition);
+			if (hit.SubItem == null)
+				return;
+
 			int columnindex = hit.Item.SubItems.IndexOf(hit.SubItem);
 			if (columnindex != 2)
 				return;
 
-			var workItem = hit.Item.Tag as WorkItem;
-			if (workItem == null)
-				return;
-
-			System.Diagnostics.Process.Start(FormatWorkItemAddress(workItem.Id));
+			var workItem = (MyWorkItem)hit.Item.Tag;
+			System.Diagnostics.Process.Start(FormatWorkItemAddress(workItem.id));
 		}
 	}
 
