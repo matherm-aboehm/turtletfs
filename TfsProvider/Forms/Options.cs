@@ -17,6 +17,7 @@ namespace TurtleTfs.Forms
 			tfsAddressTextBox.Text = options.ServerName;
 			tfsUsernameTextBox.Text = options.UserName;
 			tfsPasswordTextBox.Text = options.UserPassword;
+			tfsVisualStudioOnline.Checked = options.VisualStudioOnline;
 		}
 
 		public string Parameters { get; private set; }
@@ -26,6 +27,7 @@ namespace TurtleTfs.Forms
 			options.ServerName = tfsAddressTextBox.Text;
 			options.UserName = tfsUsernameTextBox.Text;
 			options.UserPassword = tfsPasswordTextBox.Text;
+			options.VisualStudioOnline = tfsVisualStudioOnline.Checked;
 			options.ProjectName = projectComboBox.Text;
 			Parameters = TfsOptionsSerializer.Serialize(options);
 		}

@@ -21,5 +21,8 @@ namespace TurtleTfs
 
 		[XmlElement]
 		public string ProjectName { get; set; }
+
+		[XmlElement]
+		public bool VisualStudioOnline { get; set; }
 	}
 }
