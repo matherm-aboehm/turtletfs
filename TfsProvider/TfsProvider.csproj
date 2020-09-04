@@ -101,6 +101,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CategoryAttribute.cs" />
     <Compile Include="Forms\FormLauncher.cs" />
     <Compile Include="Forms\ListViewColumnSorter.cs" />
     <Compile Include="IBugTraqProvider.cs" />
