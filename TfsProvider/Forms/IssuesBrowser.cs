@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Microsoft.TeamFoundation.Client;
+using Microsoft.TeamFoundation.ProcessConfiguration.Client;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using VSS = Microsoft.VisualStudio.Services.Common;
 
@@ -87,31 +88,59 @@ namespace TurtleTfs.Forms
 			var items = new List<MyWorkItem>();
 
 			RecurseWorkItems(
-				new Dictionary<string, string> {{"project", query.Query.Project.Name}},
-				items, query.Query);
+				new Dictionary<string, string> {
+					{ "project", query.Query.Project.Name },
+					{ "currentIteration", query.CurrentIteration }
+				}, items, query.Query);
 
 			return items;
 		}
 
-		private void AddQueryItem(ComboBox comboBox, QueryItem queryItem)
+		private void AddQueryItem(ComboBox comboBox, QueryItem queryItem, string currentIteration)
 		{
 			// Only add definitions to the combobox
 			if (queryItem is QueryDefinition)
-				comboBox.Items.Add(new TfsQuery(queryItem));
+				comboBox.Items.Add(new TfsQuery(queryItem, currentIteration));
 
 			if (!(queryItem is QueryFolder))
 				return;
 
 			foreach (var subQueryItem in queryItem as QueryFolder)
-				AddQueryItem(comboBox, subQueryItem);
+				AddQueryItem(comboBox, subQueryItem, currentIteration);
+		}
+
+		private string GetCurrentIterationPath(Project project)
+		{
+			var teamSettingsStore = _tfs.GetService<TeamSettingsConfigurationService>();
+			var teamService = _tfs.GetService<TfsTeamService>();
+			var currentUser = _tfs.AuthorizedIdentity;
+			string projectUri = project.Uri.ToString();
+			var team = teamService.QueryTeams(currentUser.Descriptor)
+				.Where(t => t.Project == projectUri)
+				.FirstOrDefault(); //TODO: if there is more than one team, provide selection mechanism
+
+			if (team == null)
+				throw new InvalidOperationException(
+					string.Format(Properties.Resources.NotMemberOfTeamProject, currentUser.UniqueName, project.Name));
+
+			var settings = teamSettingsStore.GetTeamConfigurationsForUser(new[] { projectUri })
+				.Where(c => c.TeamName == team.Name)
+				.FirstOrDefault();
+
+			if (settings == null)
+				throw new InvalidOperationException(
+					string.Format(Properties.Resources.NoAccessToTeamProject, currentUser.UniqueName, project.Name));
+
+			return settings.TeamSettings.CurrentIterationPath;
 		}
 
 		private void PopulateComboBoxWithSavedQueries(ComboBox comboBox)
 		{
 			Project project = _workItemStore.Projects[options.ProjectName];
+			string currentIteration = GetCurrentIterationPath(project);
 
 			foreach (var queryItem in project.QueryHierarchy)
-				AddQueryItem(comboBox, queryItem);
+				AddQueryItem(comboBox, queryItem, currentIteration);
 
 			if (comboBox.Items.Count > 0)
 				comboBox.SelectedIndex = 0;
@@ -171,7 +200,7 @@ namespace TurtleTfs.Forms
 
 		private void queryComboBox_SelectedValueChanged(object sender, EventArgs e)
 		{
-			PopulateWorkItemsList(listViewIssues, (TfsQuery) queryComboBox.SelectedItem);
+			PopulateWorkItemsList(listViewIssues, (TfsQuery)queryComboBox.SelectedItem);
 		}
 
 		private void listViewIssues_ColumnClick(object sender, ColumnClickEventArgs e)
@@ -207,12 +236,14 @@ namespace TurtleTfs.Forms
 
 	internal class TfsQuery
 	{
-		public TfsQuery(QueryItem query)
+		public TfsQuery(QueryItem query, string currentIteration)
 		{
 			Query = query;
+			CurrentIteration = currentIteration;
 		}
 
 		public QueryItem Query { get; private set; }
+		public string CurrentIteration { get; private set; }
 
 		public override string ToString()
 		{
