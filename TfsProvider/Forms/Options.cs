@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
+using VSS = Microsoft.VisualStudio.Services.Common;
 
 namespace TurtleTfs.Forms
 {
@@ -47,17 +48,19 @@ namespace TurtleTfs.Forms
 			if (!Uri.TryCreate(url, UriKind.Absolute, out tfsUri))
 				return;
 
-			var credentials = new System.Net.NetworkCredential();
+			var credentials = new VSS.VssCredentials();
 			if (!string.IsNullOrEmpty(username))
 			{
-				credentials.UserName = username;
-				credentials.Password = password;
+				credentials = new VSS.VssCredentials(
+					new VSS.WindowsCredential(new System.Net.NetworkCredential(
+						username, password)),
+					VSS.CredentialPromptType.PromptIfNeeded);
 			}
 
 			var tfs = new TfsTeamProjectCollection(tfsUri, credentials);
 			tfs.Authenticate();
 
-			var workItemStore = (WorkItemStore)tfs.GetService(typeof(WorkItemStore));
+			var workItemStore = tfs.GetService<WorkItemStore>();
 
 			projectComboBox.Items.Clear();
 			foreach (Project project in workItemStore.Projects)

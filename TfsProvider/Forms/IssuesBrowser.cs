@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
+using VSS = Microsoft.VisualStudio.Services.Common;
 
 namespace TurtleTfs.Forms
 {
@@ -47,17 +48,19 @@ namespace TurtleTfs.Forms
 			if (!Uri.TryCreate(options.ServerName, UriKind.Absolute, out tfsUri))
 				return null;
 
-			var credentials = new System.Net.NetworkCredential();
+			var credentials = new VSS.VssCredentials();
 			if (!string.IsNullOrEmpty(options.UserName))
 			{
-				credentials.UserName = options.UserName;
-				credentials.Password = options.UserPassword;
+				credentials = new VSS.VssCredentials(
+					new VSS.WindowsCredential(new System.Net.NetworkCredential(
+						options.UserName, options.UserPassword)),
+					VSS.CredentialPromptType.PromptIfNeeded);
 			}
 
 			_tfs = new TfsTeamProjectCollection(tfsUri, credentials);
 			_tfs.Authenticate();
 
-			return (WorkItemStore) _tfs.GetService(typeof (WorkItemStore));
+			return _tfs.GetService<WorkItemStore>();
 		}
 
 		private void RecurseWorkItems(Dictionary<string, string> context, List<MyWorkItem> items, QueryItem queryItem)
