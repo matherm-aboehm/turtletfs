@@ -54,9 +54,8 @@
 			// 
 			// tfsAddressTextBox
 			// 
-			this.tfsAddressTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.tfsAddressTextBox.CharacterCasing = System.Windows.Forms.CharacterCasing.Lower;
+			this.tfsAddressTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+			| System.Windows.Forms.AnchorStyles.Right)));
 			this.tfsAddressTextBox.Location = new System.Drawing.Point(91, 13);
 			this.tfsAddressTextBox.Name = "tfsAddressTextBox";
 			this.tfsAddressTextBox.Size = new System.Drawing.Size(488, 20);
@@ -66,8 +65,8 @@
 			// 
 			// projectComboBox
 			// 
-			this.projectComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+			this.projectComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+			| System.Windows.Forms.AnchorStyles.Right)));
 			this.projectComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.projectComboBox.FormattingEnabled = true;
 			this.projectComboBox.Location = new System.Drawing.Point(91, 89);
