@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Forms;
 
 namespace TurtleTfs.Forms
@@ -10,7 +11,7 @@ namespace TurtleTfs.Forms
 			if (form.ShowDialog() != DialogResult.OK) return originalMessage;
 			string result = form.AssociatedWorkItems;
 			string comment = form.Comment.Trim();
-			if (!string.IsNullOrEmpty(comment)) result += "\n\n" + comment;
+			if (!string.IsNullOrEmpty(comment)) result = comment + Environment.NewLine + Environment.NewLine + result;
 			return result;
 		}
 

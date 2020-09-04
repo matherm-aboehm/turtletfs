@@ -38,7 +38,8 @@ namespace TurtleTfs.Forms
 			get
 			{
 				var result = new StringBuilder();
-				foreach (var workItem in associatedWorkItems) result.AppendFormat("{0} {1}: {2}\n", workItem.type, workItem.id, workItem.title);
+				result.AppendFormat(Properties.Resources.AssociatedWorkItems, string.Join("; ", associatedWorkItems.Select(w => "#" + w.id.ToString())));
+				//foreach (var workItem in associatedWorkItems) result.AppendFormat("{0} {1}: {2}{3}", workItem.type, workItem.id, workItem.title, Environment.NewLine);
 				return result.ToString();
 			}
 		}
