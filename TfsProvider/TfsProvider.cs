@@ -26,7 +26,7 @@ namespace TurtleTfs
 
 		public string GetLinkText(IntPtr hParentWnd, string parameters)
 		{
-			return "Work Items";
+			return Properties.Resources.WorkItems;
 		}
 
 		public string GetCommitMessage(IntPtr hParentWnd, string parameters, string commonRoot, string[] pathList, string originalMessage)
