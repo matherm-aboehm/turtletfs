@@ -2,6 +2,8 @@
 /TestHost/bin
 /TfsProvider/obj
 /TfsProvider/bin
+/Ankh.TfsProvider.Extension/obj
+/Ankh.TfsProvider.Extension/bin
 /TsvnTfsProvider.v12.suo
 # Visual Studio 2015 cache/options directory
 .vs/
