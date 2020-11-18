@@ -61,7 +61,7 @@ namespace Ankh.TfsProvider.Extension.Properties {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die (Associated Work Items:\s*((;)?\s*#\d+)+)|(#\d+) ähnelt.
+        ///   Sucht eine lokalisierte Zeichenfolge, die (Associated Work Items:\s*((;)?\s*#(?&lt;id&gt;\d+))+)|(#(?&lt;id&gt;\d+)) ähnelt.
         /// </summary>
         internal static string IssueIdPattern {
             get {

@@ -1,5 +1,9 @@
 ﻿using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Ankh.ExtensionPoints.IssueTracker;
+using Ankh.UI;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 
 namespace Ankh.TfsProvider.Extension.IssueTracker
 {
@@ -10,16 +14,40 @@ namespace Ankh.TfsProvider.Extension.IssueTracker
 	public class AnkhConnector : IssueRepositoryConnector
 	{
 		internal const string ConnectorName = "TfsProvider IssueTracker Connector";
+		//TODO: implement this with AsyncLazy?
+		/*private readonly AsyncLazy<IAnkhPackage> _package;
 
-		public AnkhConnector()
-		{ }
+		public AnkhConnector(TfsProviderPackage package)
+		{
+			_package = new AsyncLazy<IAnkhPackage>(() => GetAnkhPackageAsync(package), package.JoinableTaskFactory);
+		}
+
+		internal static async System.Threading.Tasks.Task<IAnkhPackage> GetAnkhPackageAsync(IAsyncServiceProvider provider)
+		{
+			return await provider.GetServiceAsync(typeof(IAnkhPackage)) as IAnkhPackage;
+		}
+
+		internal IAnkhPackage AnkhPackage { get => _package.GetValueAsync().Result; }*/
+
+		private readonly IAnkhPackage _package;
+
+		public AnkhConnector(IAnkhPackage package)
+		{
+			_package = package;
+		}
+
+		internal static async Task<AnkhConnector> CreateAnkhConnectorAsync(IAsyncServiceProvider provider)
+		{
+			IAnkhPackage package = await provider.GetServiceAsync(typeof(IAnkhPackage)) as IAnkhPackage;
+			return new AnkhConnector(package);
+		}
 
 		/// <summary>
 		/// Gets the configuration page used in Issue Repository Setup dialog
 		/// </summary>
 		public override IssueRepositoryConfigurationPage ConfigurationPage
 		{
-			get { return new AnkhConfigurationPage(); }
+			get { return new AnkhConfigurationPage(_package); }
 		}
 
 		/// <summary>
@@ -31,7 +59,7 @@ namespace Ankh.TfsProvider.Extension.IssueTracker
 		{
 			if (settings != null && string.Equals(settings.ConnectorName, Name))
 			{
-				return AnkhRepository.Create(settings);
+				return AnkhRepository.Create(settings, _package);
 			}
 			return null;
 		}

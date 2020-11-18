@@ -12,6 +12,8 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
 using Task = System.Threading.Tasks.Task;
+using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using Microsoft.VisualStudio.Threading;
 
 namespace Ankh.TfsProvider.Extension
 {
@@ -51,11 +53,22 @@ namespace Ankh.TfsProvider.Extension
 		/// </summary>
 		public const string PackageGuidString = "2f3b3d10-e8e7-4078-b59e-ac87c6143135";
 
+		static Guid IID_IUnknown = VSConstants.IID_IUnknown;
+
+		public static TfsProviderPackage Instance { get; private set; }
+
+		AsyncPackageJoinableTaskContextNode m_taskContextNode;
+		//HINT: This doesn't need to be thread-safe, we only need a simple and single point of object creation and storage,
+		//not a pure singleton. Race conditions are allowed and wouldn't change the behavior.
+		public JoinableTaskContextNode JoinableTaskContextNode => m_taskContextNode ??
+			(m_taskContextNode = new AsyncPackageJoinableTaskContextNode(this));
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TfsProviderPackage"/> class.
 		/// </summary>
 		public TfsProviderPackage()
 		{
+			Instance = this;
 			// Inside this method you can place any initialization code that does not require
 			// any Visual Studio service because at this point the package object is created but
 			// not sited yet inside Visual Studio environment. The place to do all the other
@@ -82,7 +95,7 @@ namespace Ankh.TfsProvider.Extension
 				async (c, ct, type) =>
 				{
 					if (c == this && type == typeof(IssueTracker.AnkhConnector))
-						return new IssueTracker.AnkhConnector();
+						return await IssueTracker.AnkhConnector.CreateAnkhConnectorAsync(this);
 					return null;
 				}), true);
 
@@ -92,5 +105,55 @@ namespace Ankh.TfsProvider.Extension
 		}
 
 		#endregion
+
+		public T QueryService<T>(Guid serviceGuid) where T : class
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+
+			var sp = this.GetService<IOleServiceProvider>();
+
+			if (sp == null)
+				return null;
+
+			if (!VSErr.Succeeded(sp.QueryService(ref serviceGuid, ref IID_IUnknown, out var handle))
+				|| handle == IntPtr.Zero)
+				return null;
+
+			try
+			{
+				object obj = Marshal.GetObjectForIUnknown(handle);
+
+				return obj as T;
+			}
+			finally
+			{
+				Marshal.Release(handle);
+			}
+		}
+
+		public async Task<T> QueryServiceAsync<T>(Guid serviceGuid) where T : class
+		{
+			var sp = await this.GetServiceAsync<IOleServiceProvider>();
+
+			if (sp == null)
+				return null;
+
+			await this.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+			if (!VSErr.Succeeded(sp.QueryService(ref serviceGuid, ref IID_IUnknown, out var handle))
+				|| handle == IntPtr.Zero)
+				return null;
+
+			try
+			{
+				object obj = Marshal.GetObjectForIUnknown(handle);
+
+				return obj as T;
+			}
+			finally
+			{
+				Marshal.Release(handle);
+			}
+		}
 	}
 }
