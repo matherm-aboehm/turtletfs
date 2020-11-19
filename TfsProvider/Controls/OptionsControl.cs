@@ -108,6 +108,7 @@ namespace TurtleTfs.Controls
 
 		private void refreshProjectsButton_Click(object sender, EventArgs e)
 		{
+			savedOptions = Options;
 			PopulateProjectNameComboBox();
 		}
 
