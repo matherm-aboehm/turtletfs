@@ -63,6 +63,8 @@
             this.listViewIssues.View = System.Windows.Forms.View.Details;
             this.listViewIssues.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.listViewIssues_ColumnClick);
             this.listViewIssues.Click += new System.EventHandler(this.listViewIssues_Click);
+            this.listViewIssues.MouseLeave += new System.EventHandler(this.listViewIssues_MouseLeave);
+            this.listViewIssues.MouseMove += new System.Windows.Forms.MouseEventHandler(this.listViewIssues_MouseMove);
             // 
             // checkBoxColumn
             // 

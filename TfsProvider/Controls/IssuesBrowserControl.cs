@@ -199,7 +199,6 @@ namespace TurtleTfs.Controls
 					lvi.SubItems.Add(new ListViewItem.ListViewSubItem
 					{
 						Text = myWorkItem.id.ToString(),
-						Font = new Font(lvi.Font, FontStyle.Underline),
 						ForeColor = Color.Blue
 					});
 				}
@@ -243,6 +242,56 @@ namespace TurtleTfs.Controls
 
 			var workItem = (MyWorkItem)hit.Item.Tag;
 			OnOpenIssue(new OpenIssueEventArgs(workItem.id));
+		}
+
+		ListViewItem.ListViewSubItem lastHoveredSubitem;
+		ListViewItem lastHoveredItem;
+
+		private void listViewIssues_MouseMove(object sender, MouseEventArgs e)
+		{
+			if (!Options.VisualStudioOnline)
+				return;
+
+			ListViewHitTestInfo hit = listViewIssues.HitTest(e.Location);
+
+			if (lastHoveredItem != hit.Item || lastHoveredSubitem != hit.SubItem)
+			{
+				int columnindex = hit.SubItem == null ? -1 : hit.Item.SubItems.IndexOf(hit.SubItem);
+				if (columnindex != idColumn.Index)
+				{
+					int lastcolumnindex = lastHoveredSubitem == null || lastHoveredItem == null ? -1 :
+						lastHoveredItem.SubItems.IndexOf(lastHoveredSubitem);
+					if (lastcolumnindex == idColumn.Index)
+					{
+						lastHoveredSubitem.Font = lastHoveredItem.Font;
+						listViewIssues.Invalidate(lastHoveredSubitem.Bounds);
+						listViewIssues.Cursor = Cursors.Default;
+					}
+				}
+				else
+				{
+					hit.SubItem.Font = new Font(hit.Item.Font, FontStyle.Underline);
+					listViewIssues.Invalidate(hit.SubItem.Bounds);
+					listViewIssues.Cursor = Cursors.Hand;
+				}
+				lastHoveredItem = hit.Item;
+				lastHoveredSubitem = hit.SubItem;
+			}
+		}
+
+		private void listViewIssues_MouseLeave(object sender, EventArgs e)
+		{
+			if (!Options.VisualStudioOnline)
+				return;
+
+			if (lastHoveredSubitem != null && lastHoveredItem != null)
+			{
+				lastHoveredSubitem.Font = lastHoveredItem.Font;
+				listViewIssues.Invalidate(lastHoveredSubitem.Bounds);
+				listViewIssues.Cursor = Cursors.Default;
+				lastHoveredItem = null;
+				lastHoveredSubitem = null;
+			}
 		}
 	}
 
